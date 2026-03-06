@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+import { ConvertTransactionForm } from "@/components/transactions/ConvertTransactionForm";
+import { FeeTransactionForm } from "@/components/transactions/FeeTransactionForm";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
 import { Badge } from "@/components/ui/badge";
 import { db } from "@/lib/db";
@@ -74,7 +76,11 @@ export default async function PortfolioDetailPage({ params }: PageProps) {
             <p className="mt-1 text-sm text-muted-foreground">{portfolio.description}</p>
           )}
         </div>
-        <TransactionForm portfolioId={id} assets={assets} />
+        <div className="flex items-center gap-2">
+          <TransactionForm portfolioId={id} assets={assets} />
+          <ConvertTransactionForm portfolioId={id} assets={assets} />
+          <FeeTransactionForm portfolioId={id} assets={assets} />
+        </div>
       </div>
 
       <div>
