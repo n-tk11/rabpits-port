@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 import { DeletePortfolioButton } from "@/components/portfolio/DeletePortfolioButton";
 import { PortfolioForm } from "@/components/portfolio/PortfolioForm";
@@ -19,7 +20,9 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center justify-between text-base">
-          <span>{portfolio.name}</span>
+          <Link href={`/portfolios/${portfolio.id}`} className="hover:underline">
+            {portfolio.name}
+          </Link>
           <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs font-normal text-muted-foreground">
             {portfolio.baseCurrency}
           </span>

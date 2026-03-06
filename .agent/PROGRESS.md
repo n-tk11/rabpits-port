@@ -18,12 +18,12 @@
 
 ## Current Focus
 
-| Field              | Value                                                           |
-| ------------------ | --------------------------------------------------------------- |
-| **Active task ID** | —                                                               |
-| **Active branch**  | —                                                               |
-| **Status**         | Phases 2, 3, 4a done (PRs open) — ready for p4-buy-sell-tx next |
-| **Last updated**   | 2026-03-07                                                      |
+| Field              | Value                                                                           |
+| ------------------ | ------------------------------------------------------------------------------- |
+| **Active task ID** | —                                                                               |
+| **Active branch**  | —                                                                               |
+| **Status**         | Phase 4a (p4-buy-sell-tx) done — ready for p4-convert-tx + p4-fee-tx (parallel) |
+| **Last updated**   | 2026-03-06                                                                      |
 
 ---
 
@@ -67,13 +67,13 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 ### Phase 4 — Transaction Engine
 
-| ID             | Task                                                | Status | Branch            | Notes                               |
-| -------------- | --------------------------------------------------- | ------ | ----------------- | ----------------------------------- |
-| p4-fifo        | Pure FIFO cost basis engine                         | done   | feat/finance/fifo | PR #4 — all 8 spec cases pass       |
-| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | todo   | —                 | Depends on: p3-asset-crud, p4-fifo  |
-| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | todo   | —                 | Depends on: p4-buy-sell-tx          |
-| p4-fee-tx      | Fee transaction form + Server Actions               | todo   | —                 | Depends on: p4-buy-sell-tx          |
-| p4-positions   | Position computation from ledger                    | todo   | —                 | Depends on: p4-fifo, p4-buy-sell-tx |
+| ID             | Task                                                | Status | Branch                     | Notes                               |
+| -------------- | --------------------------------------------------- | ------ | -------------------------- | ----------------------------------- |
+| p4-fifo        | Pure FIFO cost basis engine                         | done   | feat/finance/fifo          | PR #4 — all 8 spec cases pass       |
+| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | done   | feat/transactions/buy-sell | Branch merged to main               |
+| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | todo   | —                          | Depends on: p4-buy-sell-tx          |
+| p4-fee-tx      | Fee transaction form + Server Actions               | todo   | —                          | Depends on: p4-buy-sell-tx          |
+| p4-positions   | Position computation from ledger                    | todo   | —                          | Depends on: p4-fifo, p4-buy-sell-tx |
 
 ### Phase 5 — Price Management & Snapshots
 
