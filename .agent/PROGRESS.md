@@ -18,12 +18,12 @@
 
 ## Current Focus
 
-| Field              | Value                                                 |
-| ------------------ | ----------------------------------------------------- |
-| **Active task ID** | —                                                     |
-| **Active branch**  | —                                                     |
-| **Status**         | Phase 1 complete — ready for Phase 2/3/4a in parallel |
-| **Last updated**   | 2026-03-07                                            |
+| Field              | Value                                                           |
+| ------------------ | --------------------------------------------------------------- |
+| **Active task ID** | —                                                               |
+| **Active branch**  | —                                                               |
+| **Status**         | Phases 2, 3, 4a done (PRs open) — ready for p4-buy-sell-tx next |
+| **Last updated**   | 2026-03-07                                                      |
 
 ---
 
@@ -53,27 +53,27 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 ### Phase 2 — Portfolio Management
 
-| ID                | Task                                                   | Status | Branch | Notes                         |
-| ----------------- | ------------------------------------------------------ | ------ | ------ | ----------------------------- |
-| p2-portfolio-crud | Server Actions: create/update/delete portfolio         | todo   | —      | Depends on: Phase 1           |
-| p2-portfolio-list | Portfolio cards UI (name, base currency, created date) | todo   | —      | Depends on: p2-portfolio-crud |
+| ID                | Task                                                   | Status | Branch              | Notes |
+| ----------------- | ------------------------------------------------------ | ------ | ------------------- | ----- |
+| p2-portfolio-crud | Server Actions: create/update/delete portfolio         | done   | feat/portfolio/crud | PR #5 |
+| p2-portfolio-list | Portfolio cards UI (name, base currency, created date) | done   | feat/portfolio/crud | PR #5 |
 
 ### Phase 3 — Asset Management
 
-| ID            | Task                                         | Status | Branch | Notes                     |
-| ------------- | -------------------------------------------- | ------ | ------ | ------------------------- |
-| p3-asset-crud | Server Actions: create/update asset          | todo   | —      | Depends on: Phase 1       |
-| p3-asset-list | Asset management screen + price history view | todo   | —      | Depends on: p3-asset-crud |
+| ID            | Task                                         | Status | Branch          | Notes               |
+| ------------- | -------------------------------------------- | ------ | --------------- | ------------------- |
+| p3-asset-crud | Server Actions: create/update asset          | done   | feat/asset/crud | PR #5 (same branch) |
+| p3-asset-list | Asset management screen + price history view | done   | feat/asset/crud | PR #5 (same branch) |
 
 ### Phase 4 — Transaction Engine
 
-| ID             | Task                                                | Status | Branch | Notes                               |
-| -------------- | --------------------------------------------------- | ------ | ------ | ----------------------------------- |
-| p4-fifo        | Pure FIFO cost basis engine                         | todo   | —      | Depends on: Phase 1 (no DB needed)  |
-| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | todo   | —      | Depends on: p3-asset-crud, p4-fifo  |
-| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | todo   | —      | Depends on: p4-buy-sell-tx          |
-| p4-fee-tx      | Fee transaction form + Server Actions               | todo   | —      | Depends on: p4-buy-sell-tx          |
-| p4-positions   | Position computation from ledger                    | todo   | —      | Depends on: p4-fifo, p4-buy-sell-tx |
+| ID             | Task                                                | Status | Branch            | Notes                               |
+| -------------- | --------------------------------------------------- | ------ | ----------------- | ----------------------------------- |
+| p4-fifo        | Pure FIFO cost basis engine                         | done   | feat/finance/fifo | PR #4 — all 8 spec cases pass       |
+| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | todo   | —                 | Depends on: p3-asset-crud, p4-fifo  |
+| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | todo   | —                 | Depends on: p4-buy-sell-tx          |
+| p4-fee-tx      | Fee transaction form + Server Actions               | todo   | —                 | Depends on: p4-buy-sell-tx          |
+| p4-positions   | Position computation from ledger                    | todo   | —                 | Depends on: p4-fifo, p4-buy-sell-tx |
 
 ### Phase 5 — Price Management & Snapshots
 
