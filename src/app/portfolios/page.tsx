@@ -2,6 +2,8 @@ import { PortfolioCard } from "@/components/portfolio/PortfolioCard";
 import { PortfolioForm } from "@/components/portfolio/PortfolioForm";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function PortfoliosPage() {
   const portfolios = await db.portfolio.findMany({
     select: {

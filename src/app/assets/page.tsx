@@ -2,6 +2,8 @@ import { AssetForm } from "@/components/asset/AssetForm";
 import { AssetRow } from "@/components/asset/AssetRow";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export default async function AssetsPage() {
   const assets = await db.asset.findMany({
     select: {
