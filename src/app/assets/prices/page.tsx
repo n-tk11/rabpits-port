@@ -14,18 +14,15 @@ export type AssetPriceRow = {
 };
 
 export default async function UpdatePricesPage() {
-  const [assets, latestPriceRecord] = await Promise.all([
-    db.asset.findMany({
-      orderBy: [{ type: "asc" }, { name: "asc" }],
-      include: {
-        prices: {
-          orderBy: { recordedAt: "desc" },
-          take: 1,
-        },
+  const assets = await db.asset.findMany({
+    orderBy: [{ type: "asc" }, { name: "asc" }],
+    include: {
+      prices: {
+        orderBy: { recordedAt: "desc" },
+        take: 1,
       },
-    }),
-    db.price.findFirst({ orderBy: { recordedAt: "desc" }, select: { recordedAt: true } }),
-  ]);
+    },
+  });
 
   const rows: AssetPriceRow[] = assets.map((asset) => ({
     assetId: asset.id,
@@ -37,13 +34,6 @@ export default async function UpdatePricesPage() {
     lastUpdated: asset.prices[0]?.recordedAt ?? null,
   }));
 
-  // Default the date picker to the day after the latest existing price so
-  // newly submitted prices are always the most recent in the DB.
-  const latestDate = latestPriceRecord?.recordedAt ?? new Date();
-  const defaultDate = new Date(latestDate);
-  defaultDate.setUTCDate(defaultDate.getUTCDate() + 1);
-  const defaultDateStr = defaultDate.toISOString().slice(0, 10);
-
   return (
     <div className="space-y-6">
       <div>
@@ -52,7 +42,7 @@ export default async function UpdatePricesPage() {
           Enter the current market price for each asset
         </p>
       </div>
-      <UpdatePricesForm rows={rows} defaultDate={defaultDateStr} />
+      <UpdatePricesForm rows={rows} />
     </div>
   );
 }
