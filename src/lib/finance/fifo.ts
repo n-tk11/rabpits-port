@@ -21,12 +21,23 @@ export class InsufficientQuantityError extends Error {
   }
 }
 
+export class InvalidQuantityError extends Error {
+  constructor(quantity: Decimal) {
+    super(`Sell quantity must be positive, got ${quantity.toString()}`);
+    this.name = "InvalidQuantityError";
+  }
+}
+
 /**
  * Applies a FIFO sell against an ordered list of buy lots.
  * Lots must be ordered oldest-first (FIFO order).
  * Returns remaining lots, cost basis sold, and realized gain.
  */
 export function applyFIFOSell(lots: Lot[], sellQuantity: Decimal, sellPrice: Decimal): FIFOResult {
+  if (sellQuantity.lessThanOrEqualTo(0)) {
+    throw new InvalidQuantityError(sellQuantity);
+  }
+
   const totalAvailable = lots.reduce((sum, lot) => sum.plus(lot.quantity), new Decimal(0));
   if (totalAvailable.lessThan(sellQuantity)) {
     throw new InsufficientQuantityError(totalAvailable, sellQuantity);

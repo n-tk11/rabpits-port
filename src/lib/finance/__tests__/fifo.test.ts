@@ -1,7 +1,7 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { describe, expect, it } from "vitest";
 
-import { applyFIFOSell, InsufficientQuantityError } from "@/lib/finance/fifo";
+import { applyFIFOSell, InsufficientQuantityError, InvalidQuantityError } from "@/lib/finance/fifo";
 import type { Lot } from "@/lib/finance/fifo";
 
 const d = (v: string | number) => new Decimal(v);
@@ -98,5 +98,17 @@ describe("applyFIFOSell", () => {
   // Case 8 — Empty lots
   it("throws InsufficientQuantityError when no lots exist", () => {
     expect(() => applyFIFOSell([], d(1), d(100))).toThrow(InsufficientQuantityError);
+  });
+
+  // Case 9 — Zero sellQuantity
+  it("throws InvalidQuantityError when sellQuantity is zero", () => {
+    const lots: Lot[] = [{ quantity: d(10), unitPrice: d(100), date: new Date("2024-01-01") }];
+    expect(() => applyFIFOSell(lots, d(0), d(100))).toThrow(InvalidQuantityError);
+  });
+
+  // Case 10 — Negative sellQuantity
+  it("throws InvalidQuantityError when sellQuantity is negative", () => {
+    const lots: Lot[] = [{ quantity: d(10), unitPrice: d(100), date: new Date("2024-01-01") }];
+    expect(() => applyFIFOSell(lots, d(-1), d(100))).toThrow(InvalidQuantityError);
   });
 });
