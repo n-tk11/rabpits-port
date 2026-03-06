@@ -95,14 +95,16 @@ docs(prd): update success criteria for v1
 
 Full plan in [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md). The loop for every feature:
 
-1. **Plan** — fill out `.github/FEATURE_PLAN_TEMPLATE.md` with acceptance criteria
+1. **Plan** — fill out `.github/FEATURE_PLAN_TEMPLATE.md` including the **Test Plan section** before any code
 2. **Branch** — `feat/<scope>/<name>` off `main`
-3. **TDD** — write failing tests first, implement, refactor until green
+3. **TDD** — write ALL failing tests first (from plan + `docs/FINANCE_TEST_SPECS.md` for finance functions), then implement until green
 4. **Validate** — `npx tsc --noEmit` → `npm run lint` → `npm run test` → manual smoke in Docker
-5. **PR** — open PR, CI must pass (lint + typecheck + tests)
+5. **PR** — open PR using `.github/pull_request_template.md`, CI must pass (`.github/workflows/ci.yml`)
 6. **Merge** — squash merge to `main`, delete branch
 
-Never develop on `main`. Never merge a failing CI.
+Never develop on `main`. Never merge a failing CI. Tests are written before implementation — always.
+
+Finance function test cases are pre-specified in [`docs/FINANCE_TEST_SPECS.md`](docs/FINANCE_TEST_SPECS.md) with exact numerical values.
 
 ---
 

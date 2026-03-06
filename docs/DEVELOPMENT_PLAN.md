@@ -70,10 +70,16 @@ See [`AGENTS.md`](../AGENTS.md). Format: `type(scope): summary`
 
 | Layer | Tool | What |
 |---|---|---|
-| Finance logic | Vitest (unit) | FIFO, TWR, XIRR, position calc — pure functions, high coverage |
+| Finance logic | Vitest (unit) | FIFO, TWR, XIRR, position calc — pure functions, **100% branch coverage required** |
 | Server Actions | Vitest + Prisma mock | Happy path + validation errors + DB errors |
 | Components | Vitest + Testing Library | Rendering, user interactions, form submission |
 | Integration | Vitest + test DB | Transaction flow end-to-end (buy → position → snapshot) |
+
+### Finance test specifications
+
+**All numerical test cases for finance functions are pre-defined in [`docs/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md).**  
+These must be implemented as tests **before** writing the finance functions (strict TDD).  
+Tests include exact expected values verified against manual calculation and Excel.
 
 ### What NOT to test
 - Prisma-generated types
@@ -84,17 +90,20 @@ See [`AGENTS.md`](../AGENTS.md). Format: `type(scope): summary`
 ```
 src/lib/finance/__tests__/fifo.test.ts
 src/lib/finance/__tests__/twr.test.ts
+src/lib/finance/__tests__/xirr.test.ts
+src/lib/finance/__tests__/positions.test.ts
+src/lib/finance/__tests__/annualized.test.ts
 src/lib/actions/__tests__/transactions.test.ts
 src/components/portfolio/__tests__/PortfolioCard.test.tsx
 ```
 
-### Finance calculation test requirements
-Every finance function **must** have tests covering:
-1. Known numerical result (manually verified)
-2. Zero / empty input
-3. Single transaction
-4. Edge: sell more than available (should error)
-5. Edge: fractional quantities (crypto precision)
+### Finance function TDD rule
+
+For every function in `src/lib/finance/`:
+1. Open `docs/FINANCE_TEST_SPECS.md` and find the relevant section
+2. Write ALL test cases from the spec as failing tests
+3. Only then write the implementation
+4. Do not consider the function done until every spec case passes
 
 ---
 
@@ -284,18 +293,42 @@ Every finance function **must** have tests covering:
 ```
 Phase 0 (Scaffolding)
     └── Phase 1 (Schema)
-            ├── Phase 2 (Portfolio CRUD)
-            ├── Phase 3 (Asset CRUD)
-            └── Phase 4 (Transaction Engine)  ← most critical
-                    ├── Phase 5 (Prices + Snapshots)
-                    │       └── Phase 6 (Performance Metrics)
-                    │               └── Phase 7 (Charts + Dashboard)
-                    └── Phase 8 (Transaction History)
-                            └── Phase 9 (Portfolio Detail)
-                                    └── Phase 10 (Production)
+            ├── Phase 2 (Portfolio CRUD)   ─┐
+            ├── Phase 3 (Asset CRUD)        ├─ PARALLEL: all three can run simultaneously
+            └── Phase 4a (FIFO engine)     ─┘
+                    │
+                    ├── Phase 4b (Buy/Sell tx)  depends on Phase 3 + 4a
+                    │       ├── Phase 4c (Convert tx)   ─┐ PARALLEL after 4b
+                    │       └── Phase 4d (Fee tx)        ┘
+                    │
+                    ├── Phase 4e (Positions)    depends on 4a + 4b
+                    │       └── Phase 5 (Prices + Snapshots)
+                    │               └── Phase 6 (Performance Metrics)
+                    │                       └── Phase 7 (Charts + Dashboard)
+                    │
+                    └── Phase 8 (Transaction History)  ─┐ PARALLEL with Phase 5–7
+                                                         │
+                    Phase 9 (Portfolio Detail) ──────────┘ needs 7 + 8
+                            └── Phase 10 (Production)
 ```
 
-Phases 2, 3, and 4 can be developed in parallel once Phase 1 is complete.
+### Explicit parallel work opportunities
+
+**After Phase 1 (schema) is done — start all three in parallel:**
+- `feat/portfolio/crud` (Phase 2)
+- `feat/assets/crud` (Phase 3)
+- `feat/finance/fifo` (Phase 4a — pure function, no DB needed)
+
+**After Phase 4b (buy/sell) is done — start both in parallel:**
+- `feat/transactions/convert` (Phase 4c)
+- `feat/transactions/fee` (Phase 4d)
+
+**After Phase 4e (positions) is done — start both in parallel:**
+- `feat/snapshots/engine` (Phase 5) → leads to performance + charts
+- `feat/history/transaction-log` (Phase 8) → leads to CSV export
+
+**Phase 6 metrics can be split across parallel branches:**
+- `feat/finance/twr` and `feat/finance/xirr` are fully independent of each other
 
 ---
 
@@ -317,15 +350,21 @@ A feature is **done** when all of the following are true:
 
 ## Quality Gates
 
-These run automatically on every PR via GitHub Actions:
+These run automatically on every PR via GitHub Actions (`.github/workflows/ci.yml`).  
+**No PR can be merged to `main` unless all jobs pass.**
 
 ```yaml
 jobs:
-  quality:
-    steps:
-      - npm run lint          # ESLint
-      - npx tsc --noEmit      # Type check
-      - npm run test          # Vitest
+  quality:            # lint + typecheck + all tests (with test DB)
+  finance-unit-tests: # finance logic tests run separately as a hard gate
 ```
 
-No PR merges to main unless all three pass.
+Configure squash-merge-only in GitHub repo settings:
+> Settings → General → Pull Requests → ✅ Allow squash merging → ☑ Default to PR title → disable merge commits and rebase merging
+
+Configure branch protection on `main`:
+> Settings → Branches → Add rule for `main`:
+> - ✅ Require status checks to pass before merging
+> - ✅ Require branches to be up to date before merging
+> - Status checks required: `Lint, Typecheck & Test` + `Finance Logic Unit Tests (must pass)`
+> - ✅ Require linear history (enforces squash merge)
