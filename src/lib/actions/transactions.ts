@@ -3,6 +3,7 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 
+import { triggerSnapshot } from "@/lib/actions/snapshot";
 import { db } from "@/lib/db";
 import { applyFIFOSell, InsufficientQuantityError, type Lot } from "@/lib/finance/fifo";
 import { PriceSource, TransactionType } from "@/types";
@@ -116,6 +117,12 @@ export async function createTransaction(
         source: PriceSource.TRANSACTION,
       },
     });
+
+    try {
+      await triggerSnapshot(input.portfolioId);
+    } catch (e) {
+      console.error("[snapshot] Failed to trigger snapshot:", e);
+    }
 
     revalidatePath(`/portfolios/${input.portfolioId}`);
     revalidatePath("/transactions");
