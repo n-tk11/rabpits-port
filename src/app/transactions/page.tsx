@@ -1,5 +1,6 @@
 import { TransactionType } from "@prisma/client";
 
+import { ExportCsvButton } from "@/components/transactions/ExportCsvButton";
 import { TransactionFilters } from "@/components/transactions/TransactionFilters";
 import { db } from "@/lib/db";
 
@@ -111,6 +112,13 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             ? "No transactions found"
             : `Showing ${from}–${to} of ${total} transaction${total !== 1 ? "s" : ""}`}
         </p>
+        <ExportCsvButton
+          portfolioId={searchParams.portfolioId}
+          assetId={searchParams.assetId}
+          type={searchParams.type}
+          from={searchParams.dateFrom}
+          to={searchParams.dateTo}
+        />
       </div>
 
       {transactions.length === 0 ? (
