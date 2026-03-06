@@ -5,3 +5,107 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum AssetType {
+  STOCK_ETF
+  CRYPTO
+  CASH
+  BOND
+  COMMODITY
+  MUTUAL_FUND
+}
+
+enum TransactionType {
+  BUY
+  SELL
+  CONVERT
+  FEE
+  PRICE_ADJUST
+}
+
+enum PriceSource {
+  MANUAL
+  TRANSACTION
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Portfolio {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  baseCurrency String   @map("base_currency")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+  snapshots    Snapshot[]
+
+  @@map("portfolios")
+}
+
+model Asset {
+  id              String    @id @default(cuid())
+  name            String
+  type            AssetType
+  tickerSymbol    String    @map("ticker_symbol")
+  pricingCurrency String    @map("pricing_currency")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  prices       Price[]
+  transactions Transaction[]
+
+  @@map("assets")
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  portfolioId  String          @map("portfolio_id")
+  assetId      String          @map("asset_id")
+  type         TransactionType
+  date         DateTime
+  quantity     Decimal         @db.Decimal(20, 8)
+  unitPrice    Decimal         @db.Decimal(20, 8) @map("unit_price")
+  fee          Decimal         @default(0) @db.Decimal(20, 8)
+  notes        String?
+  conversionId String?         @map("conversion_id")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+  asset     Asset     @relation(fields: [assetId], references: [id])
+
+  @@map("transactions")
+}
+
+model Price {
+  id         String      @id @default(cuid())
+  assetId    String      @map("asset_id")
+  price      Decimal     @db.Decimal(20, 8)
+  currency   String
+  recordedAt DateTime    @map("recorded_at")
+  source     PriceSource
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  asset Asset @relation(fields: [assetId], references: [id])
+
+  @@map("prices")
+}
+
+model Snapshot {
+  id                     String   @id @default(cuid())
+  portfolioId            String   @map("portfolio_id")
+  date                   DateTime
+  totalValueBaseCurrency Decimal  @db.Decimal(20, 8) @map("total_value_base_currency")
+  breakdown              Json
+  createdAt              DateTime @default(now()) @map("created_at")
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id])
+
+  @@map("snapshots")
+}
+
