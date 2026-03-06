@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
@@ -7,9 +8,6 @@ vi.mock("@/lib/db", () => ({
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
-    },
-    transaction: {
-      count: vi.fn(),
     },
   },
 }));
@@ -22,9 +20,6 @@ const mockDb = db as unknown as {
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
-  };
-  transaction: {
-    count: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -95,19 +90,29 @@ describe("updatePortfolio", () => {
 });
 
 describe("deletePortfolio", () => {
-  it("deletes a portfolio with no transactions", async () => {
-    mockDb.transaction.count.mockResolvedValue(0);
+  it("deletes a portfolio successfully", async () => {
     mockDb.portfolio.delete.mockResolvedValue(fakePortfolio);
     const result = await deletePortfolio("p1");
     expect(result.success).toBe(true);
+    expect(mockDb.portfolio.delete).toHaveBeenCalledWith({ where: { id: "p1" } });
   });
 
-  it("returns error when portfolio has transactions", async () => {
-    mockDb.transaction.count.mockResolvedValue(3);
+  it("returns friendly error when portfolio has transactions (FK constraint P2003)", async () => {
+    const fkError = new Prisma.PrismaClientKnownRequestError("FK violation", {
+      code: "P2003",
+      clientVersion: "0.0.0",
+    });
+    mockDb.portfolio.delete.mockRejectedValue(fkError);
     const result = await deletePortfolio("p1");
     expect(result.success).toBe(false);
     if (!result.success) expect(result.error).toMatch(/transactions/i);
-    expect(mockDb.portfolio.delete).not.toHaveBeenCalled();
+  });
+
+  it("returns generic error on unexpected db failure", async () => {
+    mockDb.portfolio.delete.mockRejectedValue(new Error("unexpected"));
+    const result = await deletePortfolio("p1");
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error).toMatch(/failed/i);
   });
 
   it("returns error when id is missing", async () => {

@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { db } from "@/lib/db";
@@ -79,18 +80,16 @@ export async function deletePortfolio(id: string): Promise<ActionResult<void>> {
   if (!id) return { success: false, error: "Portfolio ID is required" };
 
   try {
-    const txCount = await db.transaction.count({ where: { portfolioId: id } });
-    if (txCount > 0) {
+    await db.portfolio.delete({ where: { id } });
+    revalidatePath("/portfolios");
+    return { success: true, data: undefined };
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
       return {
         success: false,
         error: "Cannot delete a portfolio that has transactions. Remove all transactions first.",
       };
     }
-
-    await db.portfolio.delete({ where: { id } });
-    revalidatePath("/portfolios");
-    return { success: true, data: undefined };
-  } catch (e) {
     console.error(e);
     return { success: false, error: "Failed to delete portfolio" };
   }
