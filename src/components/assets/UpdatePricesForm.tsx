@@ -11,10 +11,15 @@ type UpdatePricesFormProps = {
   rows: AssetPriceRow[];
 };
 
+function todayISODate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
   const [prices, setPrices] = useState<Map<string, string>>(
-    () => new Map(rows.map((r) => [r.assetId, r.currentPrice]))
+    () => new Map(rows.map((r) => [r.assetId, ""]))
   );
+  const [priceDate, setPriceDate] = useState<string>(todayISODate);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -24,7 +29,13 @@ export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
 
   function handleSubmit() {
     setMessage(null);
-    const now = new Date().toISOString();
+
+    if (!priceDate) {
+      setMessage({ type: "error", text: "Please select a date for the prices." });
+      return;
+    }
+
+    const recordedAt = new Date(priceDate + "T00:00:00.000Z").toISOString();
 
     const updates = rows
       .filter((r) => {
@@ -35,18 +46,19 @@ export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
         assetId: r.assetId,
         price: prices.get(r.assetId)!,
         currency: r.currency,
-        recordedAt: now,
+        recordedAt,
       }));
 
     if (updates.length === 0) {
-      setMessage({ type: "error", text: "No prices to save." });
+      setMessage({ type: "error", text: "Enter at least one price before saving." });
       return;
     }
 
     startTransition(async () => {
       const result = await updatePrices(updates);
       if (result.success) {
-        setMessage({ type: "success", text: "Prices saved successfully." });
+        setMessage({ type: "success", text: `Saved ${updates.length} price(s) for ${priceDate}.` });
+        setPrices(new Map(rows.map((r) => [r.assetId, ""])));
       } else {
         setMessage({ type: "error", text: result.error });
       }
@@ -68,6 +80,23 @@ export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
         </div>
       )}
 
+      <div className="flex items-center gap-3">
+        <label htmlFor="priceDate" className="whitespace-nowrap text-sm font-medium">
+          Price date
+        </label>
+        <Input
+          id="priceDate"
+          type="date"
+          value={priceDate}
+          onChange={(e) => setPriceDate(e.target.value)}
+          className="w-44"
+          disabled={isPending}
+        />
+        <p className="text-xs text-muted-foreground">
+          All prices will be recorded on this date. Use today&apos;s date for current market prices.
+        </p>
+      </div>
+
       <div className="overflow-hidden rounded-lg border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
@@ -76,7 +105,7 @@ export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
               <th className="px-4 py-3 text-left font-medium">Ticker</th>
               <th className="px-4 py-3 text-left font-medium">Type</th>
               <th className="px-4 py-3 text-left font-medium">Currency</th>
-              <th className="px-4 py-3 text-left font-medium">Current Price</th>
+              <th className="px-4 py-3 text-left font-medium">Latest Price</th>
               <th className="px-4 py-3 text-left font-medium">Last Updated</th>
               <th className="px-4 py-3 text-left font-medium">New Price</th>
             </tr>
@@ -98,13 +127,18 @@ export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
                   )}
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {row.lastUpdated ? row.lastUpdated.toLocaleDateString() : <span>—</span>}
+                  {row.lastUpdated ? (
+                    new Date(row.lastUpdated).toLocaleDateString()
+                  ) : (
+                    <span>—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <Input
                     type="number"
                     step="any"
                     min="0"
+                    placeholder={row.currentPrice || "0.00"}
                     value={prices.get(row.assetId) ?? ""}
                     onChange={(e) => handleChange(row.assetId, e.target.value)}
                     className="w-36"
