@@ -22,8 +22,8 @@
 |---|---|
 | **Active task ID** | — |
 | **Active branch** | — |
-| **Status** | Not started |
-| **Last updated** | — |
+| **Status** | Phase 0 complete — ready for Phase 1 |
+| **Last updated** | 2026-03-06 |
 
 ---
 
@@ -35,14 +35,14 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 | ID | Task | Status | Branch | Notes |
 |---|---|---|---|---|
-| p0-nextjs-init | Initialize Next.js 14 + TypeScript + App Router | todo | — | |
-| p0-tailwind-shadcn | Setup Tailwind CSS + shadcn/ui + `cn()` utility | todo | — | |
-| p0-prisma-setup | Install Prisma, connect PostgreSQL | todo | — | |
-| p0-docker | Docker Compose (app + db) + `.env.example` | todo | — | |
-| p0-eslint-prettier | ESLint + Prettier + import ordering + Husky pre-commit | todo | — | |
-| p0-vitest | Vitest + Testing Library setup | todo | — | |
-| p0-agent-browser | Install agent-browser + Chromium + `e2e/` folder skeleton | todo | — | |
-| p0-github-actions | GitHub Actions CI: lint + typecheck + test on PR | todo | — | |
+| p0-nextjs-init | Initialize Next.js 14 + TypeScript + App Router | done | — | |
+| p0-tailwind-shadcn | Setup Tailwind CSS + shadcn/ui + `cn()` utility | done | — | |
+| p0-prisma-setup | Install Prisma, connect PostgreSQL | done | — | |
+| p0-docker | Docker Compose (app + db) + `.env.example` | done | — | |
+| p0-eslint-prettier | ESLint + Prettier + import ordering + Husky pre-commit | done | — | |
+| p0-vitest | Vitest + Testing Library setup | done | — | |
+| p0-agent-browser | Install agent-browser + Chromium + `e2e/` folder skeleton | done | — | |
+| p0-github-actions | GitHub Actions CI: lint + typecheck + test on PR | done | — | |
 
 ### Phase 1 — Data Model
 
