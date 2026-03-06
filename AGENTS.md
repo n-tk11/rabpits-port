@@ -2,6 +2,8 @@
 
 This file provides context and conventions for AI agents (Copilot, Claude, etc.) working in this repository.
 
+> **Start here:** [`PROGRESS.md`](PROGRESS.md) tells you what has been built and what to work on next. Read it before anything else.
+
 ---
 
 ## Project Overview

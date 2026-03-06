@@ -6,6 +6,28 @@ Feature plan template: [`.github/FEATURE_PLAN_TEMPLATE.md`](../.github/FEATURE_P
 
 ---
 
+## For AI Agents — Start Here
+
+Before writing any code, read these files **in this order**:
+
+1. [`PROGRESS.md`](../PROGRESS.md) — **current task status and what to work on next** (read and update this every session)
+2. [`PRD.md`](../PRD.md) — full product requirements and data model
+3. [`AGENTS.md`](../AGENTS.md) — stack, conventions, commit format, key rules
+4. [`docs/CODE_STYLE.md`](CODE_STYLE.md) — naming, typing, and component rules
+5. [`docs/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md) — pre-defined test cases (read-only — see below)
+6. This file — phases, dependencies, and exit criteria
+
+**`PROGRESS.md` is your memory between sessions.** Do not rely on `git log` to infer state — it is slow and ambiguous mid-feature. Instead:
+- At session start: read `PROGRESS.md`, find your task, check the branch.
+- Before coding: set the task to `in_progress` in `PROGRESS.md` and fill in the branch name.
+- After merging: set the task to `done`, clear the branch, update "Current Focus" to the next `todo` task.
+
+**Never modify `docs/FINANCE_TEST_SPECS.md`.** It is the source of truth for financial accuracy, verified against manual calculations and Excel. If an implementation cannot pass a spec test case, fix the implementation — not the spec. If you believe a spec value is genuinely wrong, stop and ask the user before proceeding.
+
+**When a test fails:** Fix the implementation. Never change test expectations to make a test pass. The only exception is a demonstrably incorrect expected value in `FINANCE_TEST_SPECS.md` — in that case, do not edit the spec; flag it to the user.
+
+---
+
 ## Development Workflow
 
 Every feature — no matter how small — follows this loop. No exceptions.
@@ -32,6 +54,7 @@ Every feature — no matter how small — follows this loop. No exceptions.
 │       ↓           npm run lint         (ESLint)                 │
 │                   npm run test         (Vitest)                 │
 │                   docker-compose up    (manual smoke test)      │
+│                   bash e2e/<name>.sh   (agent-browser UI test)  │
 │                                                                 │
 │  6. PR            Open PR → main                                │
 │       ↓           PR description: what, why, screenshots        │
@@ -74,6 +97,74 @@ See [`AGENTS.md`](../AGENTS.md). Format: `type(scope): summary`
 | Server Actions | Vitest + Prisma mock | Happy path + validation errors + DB errors |
 | Components | Vitest + Testing Library | Rendering, user interactions, form submission |
 | Integration | Vitest + test DB | Transaction flow end-to-end (buy → position → snapshot) |
+| UI / E2E | agent-browser | Full user flows in the running Docker app (see below) |
+
+### UI / E2E Tests — agent-browser
+
+[`agent-browser`](https://github.com/vercel-labs/agent-browser) is a headless browser CLI from Vercel Labs designed for AI agents. It drives Chromium and exposes an accessibility-tree snapshot command (`agent-browser snapshot`) that is ideal for AI-authored assertions — no fragile CSS selectors.
+
+**Setup (Phase 0):**
+```bash
+npm install --save-dev agent-browser
+npx agent-browser install   # downloads Chromium
+```
+
+**Idiom for writing a UI test script** (`e2e/<name>.sh`):
+```bash
+#!/usr/bin/env bash
+set -e
+
+agent-browser open http://localhost:3000
+
+# Use accessibility-tree refs for resilient assertions
+SNAP=$(agent-browser snapshot)
+echo "$SNAP" | grep -q "Portfolio" || (echo "FAIL: Portfolio heading not found" && exit 1)
+
+agent-browser find role button click --name "Add Portfolio"
+agent-browser find label "Name" fill "My Stocks"
+agent-browser find label "Base Currency" fill "USD"
+agent-browser find role button click --name "Save"
+
+agent-browser wait --text "My Stocks"  # assert result visible
+agent-browser screenshot e2e/screenshots/portfolio-created.png
+agent-browser close
+```
+
+**E2E test file location:**
+```
+e2e/
+  portfolio-create.sh
+  transaction-buy-sell.sh
+  transaction-convert.sh
+  price-update.sh
+  dashboard-overview.sh
+```
+
+**E2E tests are run against the live Docker stack.** The app must be up before running them:
+```bash
+docker-compose up -d
+npx agent-browser install          # no-op if already installed
+bash e2e/portfolio-create.sh
+bash e2e/transaction-buy-sell.sh
+# ...
+```
+
+**What each E2E script must verify (at minimum):**
+
+| Script | Covers |
+|---|---|
+| `portfolio-create.sh` | Create portfolio → appears in list → correct name + currency |
+| `transaction-buy-sell.sh` | Buy 1 BTC → position shows quantity; Sell 0.5 BTC → position updates |
+| `transaction-convert.sh` | Convert BTC → AAPL → both legs appear in transaction history |
+| `price-update.sh` | Update BTC price → portfolio value changes in header |
+| `dashboard-overview.sh` | Dashboard renders: total value, allocation donut, growth chart, portfolio cards |
+
+**agent-browser tips for AI agents:**
+- Always call `agent-browser snapshot` after a navigation or action to get current page refs — refs change on re-render.
+- Use `agent-browser wait --text "..."` instead of arbitrary `sleep` delays.
+- Use `agent-browser errors` after each flow to assert no uncaught JS exceptions.
+- Prefer `find role` and `find label` over CSS selectors — they survive UI refactors.
+- Save a screenshot at the end of every script for CI artifact upload.
 
 ### Finance test specifications
 
@@ -105,6 +196,11 @@ For every function in `src/lib/finance/`:
 3. Only then write the implementation
 4. Do not consider the function done until every spec case passes
 
+To run a single test file during TDD (faster feedback loop):
+```bash
+npm run test -- src/lib/finance/__tests__/fifo.test.ts
+```
+
 ---
 
 ## Phases & Features
@@ -120,9 +216,10 @@ For every function in `src/lib/finance/`:
 | p0-docker | Docker Compose (app + db) + `.env.example` | `chore/project-init` |
 | p0-eslint-prettier | ESLint + Prettier + import ordering + Husky pre-commit | `chore/project-init` |
 | p0-vitest | Vitest + Testing Library setup | `chore/project-init` |
+| p0-agent-browser | Install agent-browser + Chromium + `e2e/` folder skeleton | `chore/project-init` |
 | p0-github-actions | GitHub Actions CI: lint + typecheck + test on PR | `chore/ci` |
 
-**Exit criteria:** `docker-compose up` starts the app on port 3000 with a blank page. CI passes on an empty test suite.
+**Exit criteria:** `docker-compose up` starts the app on port 3000 with a blank page. CI passes on an empty test suite. `agent-browser open http://localhost:3000` loads the page without error.
 
 ---
 
@@ -341,8 +438,9 @@ A feature is **done** when all of the following are true:
 - [ ] No TypeScript errors (`npx tsc --noEmit`)
 - [ ] No lint errors (`npm run lint`)
 - [ ] Manual smoke test in Docker passes
+- [ ] E2E script in `e2e/` passes against the running Docker stack (`bash e2e/<name>.sh`)
 - [ ] PR is open with passing CI
-- [ ] Code reviewed (self-review at minimum: read the diff fresh)
+- [ ] Code reviewed (self-review: run `git diff main...HEAD` and read every changed line before committing)
 - [ ] Squash-merged to main
 - [ ] Feature branch deleted
 
@@ -357,6 +455,7 @@ These run automatically on every PR via GitHub Actions (`.github/workflows/ci.ym
 jobs:
   quality:            # lint + typecheck + all tests (with test DB)
   finance-unit-tests: # finance logic tests run separately as a hard gate
+  e2e:                # docker-compose up → run all e2e/*.sh scripts → upload screenshots as artifacts
 ```
 
 Configure squash-merge-only in GitHub repo settings:
