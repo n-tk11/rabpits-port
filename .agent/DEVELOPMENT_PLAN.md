@@ -61,12 +61,9 @@ Every feature — no matter how small — follows this loop. No exceptions.
 │       ↓           Fixes bugs, security issues, logic errors     │
 │                   Style/formatting issues are NOT flagged        │
 │                                                                 │
-│  7. PR            Open PR → main via GitHub MCP                 │
-│       ↓           PR description: what, why, screenshots        │
-│                   CI must pass (lint + typecheck + tests)       │
-│                                                                 │
-│  8. MERGE         ⚠️  HUMAN ONLY — do not automate              │
-│       ↓           Merge into main                               │
+│  7. MERGE         git checkout main && git merge --no-ff        │
+│       ↓           Merge feature branch into main                │
+│                   git push origin main                          │
 │                   Delete feature branch                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -87,13 +84,12 @@ Examples: `feat/transactions/buy-sell-form`, `fix/finance/fifo-edge-case`, `chor
 
 See [`.agent/AGENTS.md`](AGENTS.md). Format: `type(scope): summary`
 
-### PR rules
+### Merge rules
 
-- **Agent must open PRs using the GitHub MCP `create_pull_request` tool** — not `gh pr create` or any CLI fallback
-- Title matches the commit convention format
-- Body includes: what changed, why, acceptance criteria checklist
-- CI (lint + typecheck + tests) must be green before merge
-- Merge into main once CI passes — **must be done manually by a human, never automated**
+- All tests, lint, and typecheck must pass on the feature branch before merging
+- Merge into main with `git merge --no-ff` to preserve branch history
+- Push main to origin after merging
+- Delete the feature branch after merge
 
 ---
 
