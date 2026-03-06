@@ -42,6 +42,12 @@ export default function RootLayout({
             <Link href="/assets" className="text-sm text-muted-foreground hover:text-foreground">
               Assets
             </Link>
+            <Link
+              href="/assets/prices"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              Update Prices
+            </Link>
           </nav>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
