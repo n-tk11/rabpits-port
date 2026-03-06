@@ -9,17 +9,14 @@ import { updatePrices } from "@/lib/actions/assets";
 
 type UpdatePricesFormProps = {
   rows: AssetPriceRow[];
+  defaultDate: string;
 };
 
-function todayISODate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-export function UpdatePricesForm({ rows }: UpdatePricesFormProps) {
+export function UpdatePricesForm({ rows, defaultDate }: UpdatePricesFormProps) {
   const [prices, setPrices] = useState<Map<string, string>>(
     () => new Map(rows.map((r) => [r.assetId, ""]))
   );
-  const [priceDate, setPriceDate] = useState<string>(todayISODate);
+  const [priceDate, setPriceDate] = useState<string>(defaultDate);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
