@@ -18,12 +18,12 @@
 
 ## Current Focus
 
-| Field              | Value                                                                           |
-| ------------------ | ------------------------------------------------------------------------------- |
-| **Active task ID** | —                                                                               |
-| **Active branch**  | —                                                                               |
-| **Status**         | Phase 4a (p4-buy-sell-tx) done — ready for p4-convert-tx + p4-fee-tx (parallel) |
-| **Last updated**   | 2026-03-06                                                                      |
+| Field              | Value                                                                  |
+| ------------------ | ---------------------------------------------------------------------- |
+| **Active task ID** | —                                                                      |
+| **Active branch**  | —                                                                      |
+| **Status**         | Phase 4 fully done + p8-tx-history merged — ready for p5-snapshot next |
+| **Last updated**   | 2026-03-06                                                             |
 
 ---
 
@@ -67,13 +67,13 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 ### Phase 4 — Transaction Engine
 
-| ID             | Task                                                | Status | Branch                     | Notes                               |
-| -------------- | --------------------------------------------------- | ------ | -------------------------- | ----------------------------------- |
-| p4-fifo        | Pure FIFO cost basis engine                         | done   | feat/finance/fifo          | PR #4 — all 8 spec cases pass       |
-| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | done   | feat/transactions/buy-sell | Branch merged to main               |
-| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | todo   | —                          | Depends on: p4-buy-sell-tx          |
-| p4-fee-tx      | Fee transaction form + Server Actions               | todo   | —                          | Depends on: p4-buy-sell-tx          |
-| p4-positions   | Position computation from ledger                    | todo   | —                          | Depends on: p4-fifo, p4-buy-sell-tx |
+| ID             | Task                                                | Status | Branch                     | Notes                         |
+| -------------- | --------------------------------------------------- | ------ | -------------------------- | ----------------------------- |
+| p4-fifo        | Pure FIFO cost basis engine                         | done   | feat/finance/fifo          | PR #4 — all 8 spec cases pass |
+| p4-buy-sell-tx | Buy + Sell transaction form + Server Actions        | done   | feat/transactions/buy-sell | Branch merged to main         |
+| p4-convert-tx  | Convert transaction (two-leg) form + Server Actions | done   | feat/transactions/convert  | PR #11 — merged               |
+| p4-fee-tx      | Fee transaction form + Server Actions               | done   | feat/transactions/fee      | PR #9 — merged                |
+| p4-positions   | Position computation from ledger                    | done   | feat/finance/positions     | PR #8 — merged, 8 tests       |
 
 ### Phase 5 — Price Management & Snapshots
 
@@ -102,10 +102,10 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 ### Phase 8 — Transaction History
 
-| ID            | Task                                             | Status | Branch | Notes                      |
-| ------------- | ------------------------------------------------ | ------ | ------ | -------------------------- |
-| p8-tx-history | Global transaction log with filters + pagination | todo   | —      | Depends on: p4-buy-sell-tx |
-| p8-csv-export | CSV download of filtered transactions            | todo   | —      | Depends on: p8-tx-history  |
+| ID            | Task                                             | Status | Branch                    | Notes                     |
+| ------------- | ------------------------------------------------ | ------ | ------------------------- | ------------------------- |
+| p8-tx-history | Global transaction log with filters + pagination | done   | feat/transactions/history | PR #10 — merged           |
+| p8-csv-export | CSV download of filtered transactions            | todo   | —                         | Depends on: p8-tx-history |
 
 ### Phase 9 — Portfolio Detail Page
 
