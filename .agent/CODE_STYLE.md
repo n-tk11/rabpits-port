@@ -44,7 +44,7 @@ const double = (n: number) => n * 2
 
 ### Use `Decimal` from Prisma/decimal.js for monetary values — never `float`
 ```ts
-import { Decimal } from '@prisma/client/runtime/library'
+import { Decimal } from '@prisma/client/runtime/client'
 ```
 
 ---
