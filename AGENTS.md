@@ -91,6 +91,21 @@ docs(prd): update success criteria for v1
 
 ---
 
+## Development Workflow
+
+Full plan in [`docs/DEVELOPMENT_PLAN.md`](docs/DEVELOPMENT_PLAN.md). The loop for every feature:
+
+1. **Plan** — fill out `.github/FEATURE_PLAN_TEMPLATE.md` with acceptance criteria
+2. **Branch** — `feat/<scope>/<name>` off `main`
+3. **TDD** — write failing tests first, implement, refactor until green
+4. **Validate** — `npx tsc --noEmit` → `npm run lint` → `npm run test` → manual smoke in Docker
+5. **PR** — open PR, CI must pass (lint + typecheck + tests)
+6. **Merge** — squash merge to `main`, delete branch
+
+Never develop on `main`. Never merge a failing CI.
+
+---
+
 ## Code Style
 
 Full conventions are in [`docs/CODE_STYLE.md`](docs/CODE_STYLE.md). Key rules at a glance:
