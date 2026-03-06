@@ -1,9 +1,11 @@
 "use server";
 
+import { Decimal } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 
+import { triggerSnapshot } from "@/lib/actions/snapshot";
 import { db } from "@/lib/db";
-import { AssetType } from "@/types";
+import { AssetType, PriceSource } from "@/types";
 import type { ActionResult } from "@/types";
 
 type AssetInput = {
@@ -57,6 +59,49 @@ export async function createAsset(input: AssetInput): Promise<ActionResult<Asset
   } catch (e) {
     console.error(e);
     return { success: false, error: "Failed to create asset" };
+  }
+}
+
+type PriceUpdate = {
+  assetId: string;
+  price: string;
+  currency: string;
+  recordedAt: string;
+};
+
+export async function updatePrices(updates: PriceUpdate[]): Promise<ActionResult<void>> {
+  for (const u of updates) {
+    const val = parseFloat(u.price);
+    if (isNaN(val) || val <= 0)
+      return { success: false, error: `Invalid price "${u.price}" for asset ${u.assetId}` };
+    if (!u.currency || u.currency.trim().length === 0)
+      return { success: false, error: `Currency is required for asset ${u.assetId}` };
+  }
+
+  try {
+    await db.$transaction(
+      updates.map((u) =>
+        db.price.create({
+          data: {
+            assetId: u.assetId,
+            price: new Decimal(u.price),
+            currency: u.currency.trim().toUpperCase(),
+            recordedAt: new Date(u.recordedAt),
+            source: PriceSource.MANUAL,
+          },
+        })
+      )
+    );
+
+    const portfolios = await db.portfolio.findMany({ select: { id: true } });
+    await Promise.all(portfolios.map((p) => triggerSnapshot(p.id)));
+
+    revalidatePath("/assets/prices");
+    revalidatePath("/");
+    return { success: true, data: undefined };
+  } catch (e) {
+    console.error(e);
+    return { success: false, error: "Failed to save prices" };
   }
 }
 
