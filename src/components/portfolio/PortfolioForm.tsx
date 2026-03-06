@@ -69,7 +69,13 @@ export function PortfolioForm(props: PortfolioFormProps) {
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Portfolio" : "New Portfolio"}</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(new FormData(e.currentTarget));
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input

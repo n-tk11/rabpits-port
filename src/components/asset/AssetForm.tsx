@@ -88,7 +88,13 @@ export function AssetForm(props: AssetFormProps) {
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Asset" : "Add Asset"}</DialogTitle>
         </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(new FormData(e.currentTarget));
+          }}
+          className="space-y-4"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input
