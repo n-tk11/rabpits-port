@@ -3,7 +3,7 @@
 > What does this PR do? Why is it needed? (1–3 sentences)
 
 **PRD reference:** Section X.X  
-**Feature plan:** link to the filled-out FEATURE_PLAN_TEMPLATE
+**Feature plan:** link to the filled-out `.agent/FEATURE_PLAN_TEMPLATE.md`
 
 ---
 
@@ -59,6 +59,7 @@
 ## Merge checklist (author completes before requesting review)
 
 - [ ] Tests written **before** implementation (TDD)
+- [ ] Code review agent run — all flagged issues resolved
 - [ ] No `any` types introduced
 - [ ] No magic numbers — named constants used
 - [ ] Financial calculations are pure functions in `src/lib/finance/`

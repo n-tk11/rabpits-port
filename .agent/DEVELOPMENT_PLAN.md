@@ -1,8 +1,8 @@
 # Development Plan: Rabbits Portfolio Tracker
 
 Full product spec: [`PRD.md`](../PRD.md)  
-Code conventions: [`docs/CODE_STYLE.md`](CODE_STYLE.md)  
-Feature plan template: [`.github/FEATURE_PLAN_TEMPLATE.md`](../.github/FEATURE_PLAN_TEMPLATE.md)
+Code conventions: [`.agent/CODE_STYLE.md`](CODE_STYLE.md)  
+Feature plan template: [`.agent/FEATURE_PLAN_TEMPLATE.md`](FEATURE_PLAN_TEMPLATE.md)
 
 ---
 
@@ -10,11 +10,11 @@ Feature plan template: [`.github/FEATURE_PLAN_TEMPLATE.md`](../.github/FEATURE_P
 
 Before writing any code, read these files **in this order**:
 
-1. [`PROGRESS.md`](../PROGRESS.md) — **current task status and what to work on next** (read and update this every session)
+1. [`PROGRESS.md`](PROGRESS.md) — **current task status and what to work on next** (read and update this every session)
 2. [`PRD.md`](../PRD.md) — full product requirements and data model
-3. [`AGENTS.md`](../AGENTS.md) — stack, conventions, commit format, key rules
-4. [`docs/CODE_STYLE.md`](CODE_STYLE.md) — naming, typing, and component rules
-5. [`docs/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md) — pre-defined test cases (read-only — see below)
+3. [`.agent/AGENTS.md`](AGENTS.md) — stack, conventions, commit format, key rules
+4. [`.agent/CODE_STYLE.md`](CODE_STYLE.md) — naming, typing, and component rules
+5. [`.agent/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md) — pre-defined test cases (read-only — see below)
 6. This file — phases, dependencies, and exit criteria
 
 **`PROGRESS.md` is your memory between sessions.** Do not rely on `git log` to infer state — it is slow and ambiguous mid-feature. Instead:
@@ -56,11 +56,15 @@ Every feature — no matter how small — follows this loop. No exceptions.
 │                   docker-compose up    (manual smoke test)      │
 │                   bash e2e/<name>.sh   (agent-browser UI test)  │
 │                                                                 │
-│  6. PR            Open PR → main                                │
+│  6. CODE REVIEW   Run code-review agent on branch diff          │
+│       ↓           Fixes bugs, security issues, logic errors     │
+│                   Style/formatting issues are NOT flagged        │
+│                                                                 │
+│  7. PR            Open PR → main                                │
 │       ↓           PR description: what, why, screenshots        │
 │                   CI must pass (lint + typecheck + tests)       │
 │                                                                 │
-│  7. MERGE         Squash merge into main                        │
+│  8. MERGE         Squash merge into main                        │
 │                   Delete feature branch                         │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -77,7 +81,7 @@ test/<scope>/<short-name>     Test-only changes
 Examples: `feat/transactions/buy-sell-form`, `fix/finance/fifo-edge-case`, `chore/docker-compose`
 
 ### Commit convention
-See [`AGENTS.md`](../AGENTS.md). Format: `type(scope): summary`
+See [`.agent/AGENTS.md`](AGENTS.md). Format: `type(scope): summary`
 
 ### PR rules
 - Title matches the commit convention format
@@ -168,7 +172,7 @@ bash e2e/transaction-buy-sell.sh
 
 ### Finance test specifications
 
-**All numerical test cases for finance functions are pre-defined in [`docs/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md).**  
+**All numerical test cases for finance functions are pre-defined in [`.agent/FINANCE_TEST_SPECS.md`](FINANCE_TEST_SPECS.md).**  
 These must be implemented as tests **before** writing the finance functions (strict TDD).  
 Tests include exact expected values verified against manual calculation and Excel.
 
@@ -439,6 +443,7 @@ A feature is **done** when all of the following are true:
 - [ ] No lint errors (`npm run lint`)
 - [ ] Manual smoke test in Docker passes
 - [ ] E2E script in `e2e/` passes against the running Docker stack (`bash e2e/<name>.sh`)
+- [ ] Code review agent run on branch diff — all flagged issues addressed
 - [ ] PR is open with passing CI
 - [ ] Code reviewed (self-review: run `git diff main...HEAD` and read every changed line before committing)
 - [ ] Squash-merged to main
