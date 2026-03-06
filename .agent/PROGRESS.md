@@ -18,12 +18,12 @@
 
 ## Current Focus
 
-| Field              | Value                                                                  |
-| ------------------ | ---------------------------------------------------------------------- |
-| **Active task ID** | —                                                                      |
-| **Active branch**  | —                                                                      |
-| **Status**         | Phase 4 fully done + p8-tx-history merged — ready for p5-snapshot next |
-| **Last updated**   | 2026-03-06                                                             |
+| Field              | Value                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| **Active task ID** | —                                                                                    |
+| **Active branch**  | —                                                                                    |
+| **Status**         | Phases 5–8 fully done and merged to main — ready for p9-portfolio-detail or p10 next |
+| **Last updated**   | 2026-03-06                                                                           |
 
 ---
 
@@ -77,35 +77,35 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 
 ### Phase 5 — Price Management & Snapshots
 
-| ID              | Task                                                | Status | Branch | Notes                    |
-| --------------- | --------------------------------------------------- | ------ | ------ | ------------------------ |
-| p5-snapshot     | Snapshot engine (auto-trigger on tx + price update) | todo   | —      | Depends on: p4-positions |
-| p5-price-update | Update Prices screen (bulk inline update)           | todo   | —      | Depends on: p5-snapshot  |
+| ID              | Task                                                | Status | Branch                   | Notes                     |
+| --------------- | --------------------------------------------------- | ------ | ------------------------ | ------------------------- |
+| p5-snapshot     | Snapshot engine (auto-trigger on tx + price update) | done   | feat/finance/snapshot    | Merged to main 2026-03-06 |
+| p5-price-update | Update Prices screen (bulk inline update)           | done   | feat/assets/price-update | Merged to main 2026-03-06 |
 
 ### Phase 6 — Performance Metrics
 
-| ID                | Task                                        | Status | Branch | Notes                       |
-| ----------------- | ------------------------------------------- | ------ | ------ | --------------------------- |
-| p6-simple-return  | Simple return % calculation                 | todo   | —      | Depends on: p5-snapshot     |
-| p6-twr            | TWR pure function                           | todo   | —      | Depends on: p5-snapshot     |
-| p6-xirr           | XIRR / MWR pure function (Newton-Raphson)   | todo   | —      | Depends on: p5-snapshot     |
-| p6-annualized     | Annualized return from TWR/XIRR             | todo   | —      | Depends on: p6-twr, p6-xirr |
-| p6-performance-ui | Performance metrics panel + period selector | todo   | —      | Depends on: all p6 above    |
+| ID                | Task                                        | Status | Branch                            | Notes                     |
+| ----------------- | ------------------------------------------- | ------ | --------------------------------- | ------------------------- |
+| p6-simple-return  | Simple return % calculation                 | done   | feat/finance/returns              | Merged to main 2026-03-06 |
+| p6-twr            | TWR pure function                           | done   | feat/finance/twr (returns branch) | Merged to main 2026-03-06 |
+| p6-xirr           | XIRR / MWR pure function (Newton-Raphson)   | done   | feat/finance/snapshot             | Merged to main 2026-03-06 |
+| p6-annualized     | Annualized return from TWR/XIRR             | done   | feat/transactions/csv-export      | Merged to main 2026-03-06 |
+| p6-performance-ui | Performance metrics panel + period selector | done   | feat/portfolio/performance-panel  | Merged to main 2026-03-06 |
 
 ### Phase 7 — Charts & Dashboard
 
-| ID                  | Task                                      | Status | Branch | Notes                                                               |
-| ------------------- | ----------------------------------------- | ------ | ------ | ------------------------------------------------------------------- |
-| p7-growth-chart     | NAV growth line chart (Recharts)          | todo   | —      | Depends on: p5-snapshot                                             |
-| p7-allocation-chart | Asset allocation donut chart + table      | todo   | —      | Depends on: p4-positions                                            |
-| p7-dashboard        | Dashboard assembly (all widgets combined) | todo   | —      | Depends on: p7-growth-chart, p7-allocation-chart, p6-performance-ui |
+| ID                  | Task                                      | Status | Branch                           | Notes                     |
+| ------------------- | ----------------------------------------- | ------ | -------------------------------- | ------------------------- |
+| p7-growth-chart     | NAV growth line chart (Recharts)          | done   | feat/portfolio/performance-panel | Merged to main 2026-03-06 |
+| p7-allocation-chart | Asset allocation donut chart + table      | done   | feat/finance/snapshot            | Merged to main 2026-03-06 |
+| p7-dashboard        | Dashboard assembly (all widgets combined) | done   | feat/dashboard/assembly          | Merged to main 2026-03-06 |
 
 ### Phase 8 — Transaction History
 
-| ID            | Task                                             | Status | Branch                    | Notes                     |
-| ------------- | ------------------------------------------------ | ------ | ------------------------- | ------------------------- |
-| p8-tx-history | Global transaction log with filters + pagination | done   | feat/transactions/history | PR #10 — merged           |
-| p8-csv-export | CSV download of filtered transactions            | todo   | —                         | Depends on: p8-tx-history |
+| ID            | Task                                             | Status | Branch                       | Notes                     |
+| ------------- | ------------------------------------------------ | ------ | ---------------------------- | ------------------------- |
+| p8-tx-history | Global transaction log with filters + pagination | done   | feat/transactions/history    | PR #10 — merged           |
+| p8-csv-export | CSV download of filtered transactions            | done   | feat/transactions/csv-export | Merged to main 2026-03-06 |
 
 ### Phase 9 — Portfolio Detail Page
 
