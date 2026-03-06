@@ -3,6 +3,7 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 
+import { upsertFxRate } from "@/lib/actions/fx";
 import { triggerSnapshot } from "@/lib/actions/snapshot";
 import { db } from "@/lib/db";
 import { applyFIFOSell, InsufficientQuantityError, type Lot } from "@/lib/finance/fifo";
@@ -18,6 +19,8 @@ type CreateConvertTransactionInput = {
   toQuantity: string;
   fee?: string;
   notes?: string;
+  fromFxRate?: string;
+  toFxRate?: string;
 };
 
 type Transaction = {
@@ -58,13 +61,32 @@ export async function createConvertTransaction(
     return { success: false, error: "From and To assets must differ" };
   }
 
-  const [fromAsset, toAsset] = await Promise.all([
+  const [fromAsset, toAsset, portfolio] = await Promise.all([
     db.asset.findUnique({ where: { id: input.fromAssetId }, select: { pricingCurrency: true } }),
     db.asset.findUnique({ where: { id: input.toAssetId }, select: { pricingCurrency: true } }),
+    db.portfolio.findUnique({ where: { id: input.portfolioId }, select: { baseCurrency: true } }),
   ]);
 
   if (!fromAsset) return { success: false, error: "From asset not found" };
   if (!toAsset) return { success: false, error: "To asset not found" };
+  if (!portfolio) return { success: false, error: "Portfolio not found" };
+
+  if (fromAsset.pricingCurrency !== portfolio.baseCurrency && !input.fromFxRate) {
+    return {
+      success: false,
+      error: `Exchange rate required for From asset (1 ${fromAsset.pricingCurrency} → ${portfolio.baseCurrency})`,
+    };
+  }
+  if (
+    toAsset.pricingCurrency !== portfolio.baseCurrency &&
+    toAsset.pricingCurrency !== fromAsset.pricingCurrency &&
+    !input.toFxRate
+  ) {
+    return {
+      success: false,
+      error: `Exchange rate required for To asset (1 ${toAsset.pricingCurrency} → ${portfolio.baseCurrency})`,
+    };
+  }
 
   // FIFO validation: check fromAsset has sufficient quantity
   const priorTxs = await db.transaction.findMany({
@@ -160,6 +182,33 @@ export async function createConvertTransaction(
 
     revalidatePath(`/portfolios/${input.portfolioId}`);
     revalidatePath("/transactions");
+
+    if (fromAsset.pricingCurrency !== portfolio.baseCurrency && input.fromFxRate) {
+      await upsertFxRate(
+        fromAsset.pricingCurrency,
+        portfolio.baseCurrency,
+        new Decimal(input.fromFxRate),
+        date
+      );
+    }
+    if (
+      toAsset.pricingCurrency !== portfolio.baseCurrency &&
+      toAsset.pricingCurrency !== fromAsset.pricingCurrency &&
+      input.toFxRate
+    ) {
+      await upsertFxRate(
+        toAsset.pricingCurrency,
+        portfolio.baseCurrency,
+        new Decimal(input.toFxRate),
+        date
+      );
+    } else if (
+      toAsset.pricingCurrency !== portfolio.baseCurrency &&
+      toAsset.pricingCurrency === fromAsset.pricingCurrency &&
+      input.fromFxRate
+    ) {
+      // same currency as fromAsset — already handled above
+    }
 
     try {
       await triggerSnapshot(input.portfolioId);

@@ -3,6 +3,7 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 
+import { upsertFxRate } from "@/lib/actions/fx";
 import { triggerSnapshot } from "@/lib/actions/snapshot";
 import { db } from "@/lib/db";
 import { applyFIFOSell, InsufficientQuantityError, type Lot } from "@/lib/finance/fifo";
@@ -20,6 +21,7 @@ type CreateTransactionInput = {
   unitPrice: string;
   fee?: string;
   notes?: string;
+  fxRate?: string;
 };
 
 type Transaction = {
@@ -59,6 +61,20 @@ export async function createTransaction(
     select: { pricingCurrency: true },
   });
   if (!asset) return { success: false, error: "Asset not found" };
+
+  const portfolio = await db.portfolio.findUnique({
+    where: { id: input.portfolioId },
+    select: { baseCurrency: true },
+  });
+  if (!portfolio) return { success: false, error: "Portfolio not found" };
+
+  const needsFx = asset.pricingCurrency !== portfolio.baseCurrency;
+  if (needsFx && !input.fxRate) {
+    return {
+      success: false,
+      error: `Exchange rate is required (1 ${asset.pricingCurrency} → ${portfolio.baseCurrency})`,
+    };
+  }
 
   if (input.type === TransactionType.SELL) {
     const priorTxs = await db.transaction.findMany({
@@ -117,6 +133,15 @@ export async function createTransaction(
         source: PriceSource.TRANSACTION,
       },
     });
+
+    if (needsFx && input.fxRate) {
+      await upsertFxRate(
+        asset.pricingCurrency,
+        portfolio.baseCurrency,
+        new Decimal(input.fxRate),
+        new Date(input.date)
+      );
+    }
 
     try {
       await triggerSnapshot(input.portfolioId);

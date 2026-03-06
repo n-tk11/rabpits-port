@@ -22,20 +22,20 @@ beforeEach(() => {
 
 describe("FeeTransactionForm", () => {
   it("renders the 'Fee' trigger button", () => {
-    render(<FeeTransactionForm portfolioId="p1" assets={assets} />);
+    render(<FeeTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     expect(screen.getByRole("button", { name: /fee/i })).toBeDefined();
   });
 
   it("opens dialog when Fee button is clicked", async () => {
     const user = userEvent.setup();
-    render(<FeeTransactionForm portfolioId="p1" assets={assets} />);
+    render(<FeeTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /fee/i }));
     expect(screen.getByRole("dialog")).toBeDefined();
   });
 
   it("shows amount input in dialog", async () => {
     const user = userEvent.setup();
-    render(<FeeTransactionForm portfolioId="p1" assets={assets} />);
+    render(<FeeTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /fee/i }));
     expect(screen.getByLabelText(/amount/i)).toBeDefined();
   });
@@ -46,7 +46,7 @@ describe("FeeTransactionForm", () => {
       error: "Amount must be positive",
     });
     const user = userEvent.setup();
-    render(<FeeTransactionForm portfolioId="p1" assets={assets} />);
+    render(<FeeTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /fee/i }));
 
     await user.type(screen.getByLabelText(/amount/i), "0");

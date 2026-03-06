@@ -34,6 +34,7 @@ type Asset = {
 type TransactionFormProps = {
   portfolioId: string;
   assets: Asset[];
+  portfolioBaseCurrency: string;
 };
 
 type BuySellType = "BUY" | "SELL";
@@ -43,12 +44,19 @@ const TRANSACTION_TYPE_OPTIONS: { value: BuySellType; label: string }[] = [
   { value: TransactionType.SELL, label: "Sell" },
 ];
 
-export function TransactionForm({ portfolioId, assets }: TransactionFormProps) {
+export function TransactionForm({
+  portfolioId,
+  assets,
+  portfolioBaseCurrency,
+}: TransactionFormProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string>(assets[0]?.id ?? "");
   const [selectedType, setSelectedType] = useState<BuySellType>(TransactionType.BUY);
   const [isPending, startTransition] = useTransition();
+
+  const selectedAsset = assets.find((a) => a.id === selectedAssetId);
+  const needsFx = selectedAsset ? selectedAsset.pricingCurrency !== portfolioBaseCurrency : false;
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -69,6 +77,7 @@ export function TransactionForm({ portfolioId, assets }: TransactionFormProps) {
       unitPrice: formData.get("unitPrice") as string,
       fee: (formData.get("fee") as string) || undefined,
       notes: (formData.get("notes") as string) || undefined,
+      fxRate: (formData.get("fxRate") as string) || undefined,
     };
 
     startTransition(async () => {
@@ -142,7 +151,9 @@ export function TransactionForm({ portfolioId, assets }: TransactionFormProps) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="unitPrice">Unit Price</Label>
+              <Label htmlFor="unitPrice">
+                Unit Price{selectedAsset ? ` (${selectedAsset.pricingCurrency})` : ""}
+              </Label>
               <Input
                 id="unitPrice"
                 name="unitPrice"
@@ -154,6 +165,24 @@ export function TransactionForm({ portfolioId, assets }: TransactionFormProps) {
               />
             </div>
           </div>
+
+          {needsFx && selectedAsset && (
+            <div className="space-y-1.5">
+              <Label htmlFor="fxRate">
+                Exchange Rate — 1 {selectedAsset.pricingCurrency} ={" "}
+                <span className="font-medium">? {portfolioBaseCurrency}</span>
+              </Label>
+              <Input
+                id="fxRate"
+                name="fxRate"
+                type="number"
+                step="any"
+                min="0"
+                placeholder={`e.g. 0.028`}
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="fee">Fee (optional)</Label>

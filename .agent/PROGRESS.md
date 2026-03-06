@@ -18,12 +18,12 @@
 
 ## Current Focus
 
-| Field              | Value                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------ |
-| **Active task ID** | —                                                                                    |
-| **Active branch**  | —                                                                                    |
-| **Status**         | Phases 5–8 fully done and merged to main — ready for p9-portfolio-detail or p10 next |
-| **Last updated**   | 2026-03-06                                                                           |
+| Field              | Value                                                                    |
+| ------------------ | ------------------------------------------------------------------------ |
+| **Active task ID** | p9-nav-fix, p9-portfolio-detail, p9-fx-conversion, p9-tx-currency-labels |
+| **Active branch**  | —                                                                        |
+| **Status**         | Phase 9 in progress                                                      |
+| **Last updated**   | 2026-03-06                                                               |
 
 ---
 
@@ -112,6 +112,15 @@ Legend: `todo` · `in_progress` · `done` · `blocked`
 | ID                  | Task                                                          | Status | Branch | Notes                                   |
 | ------------------- | ------------------------------------------------------------- | ------ | ------ | --------------------------------------- |
 | p9-portfolio-detail | Portfolio detail page (holdings + metrics + charts + history) | todo   | —      | Depends on: p7-dashboard, p8-tx-history |
+
+### Phase 9 — UI & FX Improvements
+
+| ID                    | Task                                                          | Status | Branch | Notes      |
+| --------------------- | ------------------------------------------------------------- | ------ | ------ | ---------- |
+| p9-nav-fix            | Logo → home `/`, add Dashboard nav link                       | done   | —      | 2026-03-06 |
+| p9-portfolio-detail   | Portfolio detail page (dashboard + charts + tx table)         | done   | —      | 2026-03-06 |
+| p9-fx-conversion      | FX rate field in transaction forms + auto CASH asset upsert   | done   | —      | 2026-03-06 |
+| p9-tx-currency-labels | Currency abbreviation on Unit Price + Fee columns in tx table | done   | —      | 2026-03-06 |
 
 ### Phase 10 — Production Readiness
 

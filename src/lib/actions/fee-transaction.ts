@@ -3,6 +3,7 @@
 import { Decimal } from "@prisma/client/runtime/client";
 import { revalidatePath } from "next/cache";
 
+import { upsertFxRate } from "@/lib/actions/fx";
 import { triggerSnapshot } from "@/lib/actions/snapshot";
 import { db } from "@/lib/db";
 import { TransactionType } from "@/types";
@@ -14,6 +15,7 @@ type CreateFeeTransactionInput = {
   date: string;
   amount: string;
   notes?: string;
+  fxRate?: string;
 };
 
 type Transaction = {
@@ -46,6 +48,20 @@ export async function createFeeTransaction(
   const asset = await db.asset.findUnique({ where: { id: input.assetId } });
   if (!asset) return { success: false, error: "Asset not found" };
 
+  const portfolio = await db.portfolio.findUnique({
+    where: { id: input.portfolioId },
+    select: { baseCurrency: true },
+  });
+  if (!portfolio) return { success: false, error: "Portfolio not found" };
+
+  const needsFx = asset.pricingCurrency !== portfolio.baseCurrency;
+  if (needsFx && !input.fxRate) {
+    return {
+      success: false,
+      error: `Exchange rate is required (1 ${asset.pricingCurrency} → ${portfolio.baseCurrency})`,
+    };
+  }
+
   try {
     const transaction = await db.transaction.create({
       data: {
@@ -62,6 +78,15 @@ export async function createFeeTransaction(
 
     revalidatePath(`/portfolios/${input.portfolioId}`);
     revalidatePath("/transactions");
+
+    if (needsFx && input.fxRate) {
+      await upsertFxRate(
+        asset.pricingCurrency,
+        portfolio.baseCurrency,
+        new Decimal(input.fxRate),
+        new Date(input.date)
+      );
+    }
 
     try {
       await triggerSnapshot(input.portfolioId);

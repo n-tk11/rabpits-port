@@ -33,13 +33,21 @@ type Asset = {
 type FeeTransactionFormProps = {
   portfolioId: string;
   assets: Asset[];
+  portfolioBaseCurrency: string;
 };
 
-export function FeeTransactionForm({ portfolioId, assets }: FeeTransactionFormProps) {
+export function FeeTransactionForm({
+  portfolioId,
+  assets,
+  portfolioBaseCurrency,
+}: FeeTransactionFormProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedAssetId, setSelectedAssetId] = useState<string>(assets[0]?.id ?? "");
   const [isPending, startTransition] = useTransition();
+
+  const selectedAsset = assets.find((a) => a.id === selectedAssetId);
+  const needsFx = selectedAsset ? selectedAsset.pricingCurrency !== portfolioBaseCurrency : false;
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -57,6 +65,7 @@ export function FeeTransactionForm({ portfolioId, assets }: FeeTransactionFormPr
       date: formData.get("date") as string,
       amount: formData.get("amount") as string,
       notes: (formData.get("notes") as string) || undefined,
+      fxRate: (formData.get("fxRate") as string) || undefined,
     };
 
     startTransition(async () => {
@@ -103,7 +112,9 @@ export function FeeTransactionForm({ portfolioId, assets }: FeeTransactionFormPr
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">
+              Amount{selectedAsset ? ` (${selectedAsset.pricingCurrency})` : ""}
+            </Label>
             <Input
               id="amount"
               name="amount"
@@ -114,6 +125,24 @@ export function FeeTransactionForm({ portfolioId, assets }: FeeTransactionFormPr
               required
             />
           </div>
+
+          {needsFx && selectedAsset && (
+            <div className="space-y-1.5">
+              <Label htmlFor="fxRate">
+                Exchange Rate — 1 {selectedAsset.pricingCurrency} ={" "}
+                <span className="font-medium">? {portfolioBaseCurrency}</span>
+              </Label>
+              <Input
+                id="fxRate"
+                name="fxRate"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="e.g. 0.028"
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="notes">Notes (optional)</Label>

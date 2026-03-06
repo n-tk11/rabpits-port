@@ -33,9 +33,14 @@ type Asset = {
 type ConvertTransactionFormProps = {
   portfolioId: string;
   assets: Asset[];
+  portfolioBaseCurrency: string;
 };
 
-export function ConvertTransactionForm({ portfolioId, assets }: ConvertTransactionFormProps) {
+export function ConvertTransactionForm({
+  portfolioId,
+  assets,
+  portfolioBaseCurrency,
+}: ConvertTransactionFormProps) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fromAssetId, setFromAssetId] = useState<string>(assets[0]?.id ?? "");
@@ -44,8 +49,16 @@ export function ConvertTransactionForm({ portfolioId, assets }: ConvertTransacti
   const [toQuantity, setToQuantity] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const fromTicker = assets.find((a) => a.id === fromAssetId)?.tickerSymbol ?? "";
-  const toTicker = assets.find((a) => a.id === toAssetId)?.tickerSymbol ?? "";
+  const fromAsset = assets.find((a) => a.id === fromAssetId);
+  const toAsset = assets.find((a) => a.id === toAssetId);
+  const fromTicker = fromAsset?.tickerSymbol ?? "";
+  const toTicker = toAsset?.tickerSymbol ?? "";
+
+  const fromNeedsFx = fromAsset ? fromAsset.pricingCurrency !== portfolioBaseCurrency : false;
+  const toNeedsFx =
+    toAsset && toAsset.pricingCurrency !== portfolioBaseCurrency
+      ? toAsset.pricingCurrency !== (fromAsset?.pricingCurrency ?? "")
+      : false;
 
   const impliedRate = useMemo(() => {
     const from = parseFloat(fromQuantity);
@@ -77,6 +90,8 @@ export function ConvertTransactionForm({ portfolioId, assets }: ConvertTransacti
       toQuantity,
       fee: (formData.get("fee") as string) || undefined,
       notes: (formData.get("notes") as string) || undefined,
+      fromFxRate: (formData.get("fromFxRate") as string) || undefined,
+      toFxRate: (formData.get("toFxRate") as string) || undefined,
     };
 
     startTransition(async () => {
@@ -175,6 +190,42 @@ export function ConvertTransactionForm({ portfolioId, assets }: ConvertTransacti
             <p className="text-sm text-muted-foreground">
               Rate: 1 {fromTicker} = {impliedRate} {toTicker}
             </p>
+          )}
+
+          {fromNeedsFx && fromAsset && (
+            <div className="space-y-1.5">
+              <Label htmlFor="fromFxRate">
+                From Exchange Rate — 1 {fromAsset.pricingCurrency} ={" "}
+                <span className="font-medium">? {portfolioBaseCurrency}</span>
+              </Label>
+              <Input
+                id="fromFxRate"
+                name="fromFxRate"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="e.g. 0.028"
+                required
+              />
+            </div>
+          )}
+
+          {toNeedsFx && toAsset && (
+            <div className="space-y-1.5">
+              <Label htmlFor="toFxRate">
+                To Exchange Rate — 1 {toAsset.pricingCurrency} ={" "}
+                <span className="font-medium">? {portfolioBaseCurrency}</span>
+              </Label>
+              <Input
+                id="toFxRate"
+                name="toFxRate"
+                type="number"
+                step="any"
+                min="0"
+                placeholder="e.g. 0.013"
+                required
+              />
+            </div>
           )}
 
           <div className="space-y-1.5">

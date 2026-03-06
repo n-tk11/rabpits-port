@@ -22,20 +22,20 @@ beforeEach(() => {
 
 describe("TransactionForm", () => {
   it("renders the 'Add Transaction' trigger button", () => {
-    render(<TransactionForm portfolioId="p1" assets={assets} />);
+    render(<TransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     expect(screen.getByRole("button", { name: /add transaction/i })).toBeDefined();
   });
 
   it("opens dialog when trigger button is clicked", async () => {
     const user = userEvent.setup();
-    render(<TransactionForm portfolioId="p1" assets={assets} />);
+    render(<TransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /add transaction/i }));
     expect(screen.getByRole("dialog")).toBeDefined();
   });
 
   it("shows form fields in the dialog", async () => {
     const user = userEvent.setup();
-    render(<TransactionForm portfolioId="p1" assets={assets} />);
+    render(<TransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /add transaction/i }));
     expect(screen.getByLabelText(/quantity/i)).toBeDefined();
     expect(screen.getByLabelText(/unit price/i)).toBeDefined();
@@ -47,7 +47,7 @@ describe("TransactionForm", () => {
       error: "Insufficient quantity available to sell",
     });
     const user = userEvent.setup();
-    render(<TransactionForm portfolioId="p1" assets={assets} />);
+    render(<TransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /add transaction/i }));
 
     await user.type(screen.getByLabelText(/quantity/i), "10");
@@ -68,7 +68,7 @@ describe("TransactionForm", () => {
       data: { id: "tx1" },
     });
     const user = userEvent.setup();
-    render(<TransactionForm portfolioId="p1" assets={assets} />);
+    render(<TransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /add transaction/i }));
 
     await user.type(screen.getByLabelText(/quantity/i), "10");

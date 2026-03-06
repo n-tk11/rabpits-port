@@ -11,6 +11,11 @@ vi.mock("@/lib/db", () => ({
     },
     asset: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+    },
+    portfolio: {
+      findUnique: vi.fn(),
     },
     price: {
       create: vi.fn(),
@@ -34,6 +39,11 @@ type MockDb = {
     findMany: ReturnType<typeof vi.fn>;
   };
   asset: {
+    findUnique: ReturnType<typeof vi.fn>;
+    findFirst: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
+  };
+  portfolio: {
     findUnique: ReturnType<typeof vi.fn>;
   };
   price: {
@@ -99,6 +109,7 @@ const validInput = {
   fromQuantity: "50",
   toQuantity: "45",
   fee: "2",
+  toFxRate: "1.1",
 };
 
 function setupHappyPath(mockTx: MockTx) {
@@ -107,6 +118,9 @@ function setupHappyPath(mockTx: MockTx) {
     if (where.id === "asset-eur") return Promise.resolve(fakeToAsset);
     return Promise.resolve(null);
   });
+  mockDb.portfolio.findUnique.mockResolvedValue({ baseCurrency: "USD" });
+  mockDb.asset.findFirst.mockResolvedValue({ id: "cash-eur" });
+  mockDb.price.create.mockResolvedValue({});
   mockDb.transaction.findMany.mockResolvedValue([fakeBuyTx]);
   mockTx.transaction.create.mockResolvedValueOnce(fakeSellLeg).mockResolvedValueOnce(fakeBuyLeg);
   mockTx.price.create.mockResolvedValue({});
@@ -115,6 +129,9 @@ function setupHappyPath(mockTx: MockTx) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockDb.portfolio.findUnique.mockResolvedValue({ baseCurrency: "USD" });
+  mockDb.asset.findFirst.mockResolvedValue({ id: "cash-eur" });
+  mockDb.price.create.mockResolvedValue({});
 });
 
 describe("createConvertTransaction", () => {

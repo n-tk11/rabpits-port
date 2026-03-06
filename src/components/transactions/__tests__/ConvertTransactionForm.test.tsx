@@ -22,20 +22,20 @@ beforeEach(() => {
 
 describe("ConvertTransactionForm", () => {
   it("renders the 'Convert' trigger button", () => {
-    render(<ConvertTransactionForm portfolioId="p1" assets={assets} />);
+    render(<ConvertTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     expect(screen.getByRole("button", { name: /convert/i })).toBeDefined();
   });
 
   it("opens dialog when Convert button is clicked", async () => {
     const user = userEvent.setup();
-    render(<ConvertTransactionForm portfolioId="p1" assets={assets} />);
+    render(<ConvertTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /convert/i }));
     expect(screen.getByRole("dialog")).toBeDefined();
   });
 
   it("shows From Asset and To Asset selects in the dialog", async () => {
     const user = userEvent.setup();
-    render(<ConvertTransactionForm portfolioId="p1" assets={assets} />);
+    render(<ConvertTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /convert/i }));
     expect(screen.getByText(/from asset/i)).toBeDefined();
     expect(screen.getByText(/to asset/i)).toBeDefined();
@@ -48,7 +48,7 @@ describe("ConvertTransactionForm", () => {
     });
 
     const user = userEvent.setup();
-    render(<ConvertTransactionForm portfolioId="p1" assets={assets} />);
+    render(<ConvertTransactionForm portfolioId="p1" assets={assets} portfolioBaseCurrency="USD" />);
     await user.click(screen.getByRole("button", { name: /convert/i }));
 
     await user.type(screen.getByLabelText(/from quantity/i), "100");
@@ -56,6 +56,9 @@ describe("ConvertTransactionForm", () => {
 
     const dateInput = screen.getByLabelText(/date/i);
     await user.type(dateInput, "2024-06-01");
+
+    // toAsset (EUR) ≠ base (USD) — the FX rate field is required
+    await user.type(screen.getByLabelText(/to exchange rate/i), "1.1");
 
     const submitButton = screen.getByRole("button", { name: /convert$/i });
     await user.click(submitButton);

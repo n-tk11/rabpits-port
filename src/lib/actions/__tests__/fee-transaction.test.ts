@@ -10,6 +10,12 @@ vi.mock("@/lib/db", () => ({
     asset: {
       findUnique: vi.fn(),
     },
+    portfolio: {
+      findUnique: vi.fn(),
+    },
+    price: {
+      create: vi.fn(),
+    },
   },
 }));
 
@@ -23,6 +29,12 @@ type MockDb = {
   };
   asset: {
     findUnique: ReturnType<typeof vi.fn>;
+  };
+  portfolio: {
+    findUnique: ReturnType<typeof vi.fn>;
+  };
+  price: {
+    create: ReturnType<typeof vi.fn>;
   };
 };
 
@@ -55,6 +67,7 @@ const validFeeInput = {
 beforeEach(() => {
   vi.clearAllMocks();
   mockDb.asset.findUnique.mockResolvedValue(fakeAsset);
+  mockDb.portfolio.findUnique.mockResolvedValue({ baseCurrency: "USD" });
   mockDb.transaction.create.mockResolvedValue(fakeFeeTransaction);
 });
 
