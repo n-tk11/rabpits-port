@@ -90,6 +90,10 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     latestSnapshot?.totalValueBaseCurrency ??
     positionValues.reduce((sum, { value }) => sum.plus(value), new Decimal(0));
 
+  const totalCost = positions.reduce((sum, pos) => sum.plus(pos.totalCost), new Decimal(0));
+  const totalGainLoss = totalValue.minus(totalCost);
+  const hasValue = totalValue.greaterThan(0);
+
   const allocationItems: AllocationItem[] = positionValues
     .filter(({ value }) => value.greaterThan(0))
     .map(({ pos, value }) => {
@@ -109,9 +113,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       };
     });
 
-  const currentValueFormatted = totalValue.greaterThan(0)
-    ? `$${totalValue.toNumber().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : "No data yet";
+  function fmt(val: Decimal) {
+    return `${activePortfolio.baseCurrency} ${val.toNumber().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -135,12 +139,64 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </div>
       )}
 
-      {/* Portfolio header */}
-      <div className="space-y-0.5">
-        <h1 className="text-2xl font-bold tracking-tight">{activePortfolio.name}</h1>
-        <p className="text-muted-foreground">
-          {currentValueFormatted} · Base: {activePortfolio.baseCurrency}
-        </p>
+      {/* Portfolio header + stat cards */}
+      <div className="space-y-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">{activePortfolio.name}</h1>
+          <p className="text-xs text-muted-foreground">Base: {activePortfolio.baseCurrency}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Card>
+            <CardContent className="pb-4 pt-4">
+              <p className="mb-1 text-xs text-muted-foreground">Current Value</p>
+              <p className="text-xl font-bold">{hasValue ? fmt(totalValue) : "—"}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pb-4 pt-4">
+              <p className="mb-1 text-xs text-muted-foreground">Total Cost</p>
+              <p className="text-xl font-bold">{totalCost.greaterThan(0) ? fmt(totalCost) : "—"}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pb-4 pt-4">
+              <p className="mb-1 text-xs text-muted-foreground">Gain / Loss</p>
+              <p
+                className={cn(
+                  "text-xl font-bold",
+                  hasValue && totalCost.greaterThan(0)
+                    ? totalGainLoss.greaterThanOrEqualTo(0)
+                      ? "text-green-600"
+                      : "text-red-600"
+                    : "text-muted-foreground"
+                )}
+              >
+                {hasValue && totalCost.greaterThan(0)
+                  ? `${totalGainLoss.greaterThanOrEqualTo(0) ? "+" : ""}${fmt(totalGainLoss)}`
+                  : "—"}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pb-4 pt-4">
+              <p className="mb-1 text-xs text-muted-foreground">Return %</p>
+              <p
+                className={cn(
+                  "text-xl font-bold",
+                  hasValue && totalCost.greaterThan(0)
+                    ? totalGainLoss.greaterThanOrEqualTo(0)
+                      ? "text-green-600"
+                      : "text-red-600"
+                    : "text-muted-foreground"
+                )}
+              >
+                {hasValue && totalCost.greaterThan(0)
+                  ? `${totalGainLoss.greaterThanOrEqualTo(0) ? "+" : ""}${totalGainLoss.dividedBy(totalCost).times(100).toFixed(2)}%`
+                  : "—"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Performance panel */}

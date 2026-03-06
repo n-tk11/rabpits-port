@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { computePositions } from "@/lib/finance/positions";
 import type { LedgerEntry } from "@/lib/finance/positions";
+import { cn } from "@/lib/utils";
 import { TransactionType } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,7 @@ export default async function PortfolioDetailPage({ params, searchParams }: Page
   ]);
 
   if (!portfolio) notFound();
+  const port = portfolio;
 
   // --- Dashboard data (same logic as home page, scoped to this portfolio) ---
   const latestSnapshot = await db.snapshot.findFirst({
@@ -116,6 +118,14 @@ export default async function PortfolioDetailPage({ params, searchParams }: Page
     latestSnapshot?.totalValueBaseCurrency ??
     positionValues.reduce((sum, { value }) => sum.plus(value), new Decimal(0));
 
+  const totalCost = positions.reduce((sum, pos) => sum.plus(pos.totalCost), new Decimal(0));
+  const totalGainLoss = totalValue.minus(totalCost);
+  const hasValue = totalValue.greaterThan(0);
+
+  function fmt(val: Decimal) {
+    return `${port.baseCurrency} ${val.toNumber().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
   const allocationItems: AllocationItem[] = positionValues
     .filter(({ value }) => value.greaterThan(0))
     .map(({ pos, value }) => {
@@ -135,41 +145,92 @@ export default async function PortfolioDetailPage({ params, searchParams }: Page
       };
     });
 
-  const currentValueFormatted = totalValue.greaterThan(0)
-    ? `$${totalValue.toNumber().toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : "No data yet";
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight">{portfolio.name}</h1>
-            <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
-              {portfolio.baseCurrency}
-            </span>
+        <div className="space-y-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight">{port.name}</h1>
+              <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                {port.baseCurrency}
+              </span>
+            </div>
+            {port.description && (
+              <p className="mt-1 text-sm text-muted-foreground">{port.description}</p>
+            )}
           </div>
-          {portfolio.description && (
-            <p className="mt-1 text-sm text-muted-foreground">{portfolio.description}</p>
-          )}
-          <p className="mt-0.5 text-sm text-muted-foreground">{currentValueFormatted}</p>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Card>
+              <CardContent className="pb-4 pt-4">
+                <p className="mb-1 text-xs text-muted-foreground">Current Value</p>
+                <p className="text-xl font-bold">{hasValue ? fmt(totalValue) : "—"}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pb-4 pt-4">
+                <p className="mb-1 text-xs text-muted-foreground">Total Cost</p>
+                <p className="text-xl font-bold">
+                  {totalCost.greaterThan(0) ? fmt(totalCost) : "—"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pb-4 pt-4">
+                <p className="mb-1 text-xs text-muted-foreground">Gain / Loss</p>
+                <p
+                  className={cn(
+                    "text-xl font-bold",
+                    hasValue && totalCost.greaterThan(0)
+                      ? totalGainLoss.greaterThanOrEqualTo(0)
+                        ? "text-green-600"
+                        : "text-red-600"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {hasValue && totalCost.greaterThan(0)
+                    ? `${totalGainLoss.greaterThanOrEqualTo(0) ? "+" : ""}${fmt(totalGainLoss)}`
+                    : "—"}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pb-4 pt-4">
+                <p className="mb-1 text-xs text-muted-foreground">Return %</p>
+                <p
+                  className={cn(
+                    "text-xl font-bold",
+                    hasValue && totalCost.greaterThan(0)
+                      ? totalGainLoss.greaterThanOrEqualTo(0)
+                        ? "text-green-600"
+                        : "text-red-600"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {hasValue && totalCost.greaterThan(0)
+                    ? `${totalGainLoss.greaterThanOrEqualTo(0) ? "+" : ""}${totalGainLoss.dividedBy(totalCost).times(100).toFixed(2)}%`
+                    : "—"}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <TransactionForm
             portfolioId={id}
             assets={assets}
-            portfolioBaseCurrency={portfolio.baseCurrency}
+            portfolioBaseCurrency={port.baseCurrency}
           />
           <ConvertTransactionForm
             portfolioId={id}
             assets={assets}
-            portfolioBaseCurrency={portfolio.baseCurrency}
+            portfolioBaseCurrency={port.baseCurrency}
           />
           <FeeTransactionForm
             portfolioId={id}
             assets={assets}
-            portfolioBaseCurrency={portfolio.baseCurrency}
+            portfolioBaseCurrency={port.baseCurrency}
           />
         </div>
       </div>
@@ -187,7 +248,7 @@ export default async function PortfolioDetailPage({ params, searchParams }: Page
             <GrowthChartWrapper
               portfolioId={id}
               period={activePeriod}
-              baseCurrency={portfolio.baseCurrency}
+              baseCurrency={port.baseCurrency}
             />
           </CardContent>
         </Card>
@@ -199,7 +260,7 @@ export default async function PortfolioDetailPage({ params, searchParams }: Page
           <CardContent>
             <AllocationChart
               items={allocationItems}
-              baseCurrency={portfolio.baseCurrency}
+              baseCurrency={port.baseCurrency}
               totalValue={totalValue}
             />
           </CardContent>
